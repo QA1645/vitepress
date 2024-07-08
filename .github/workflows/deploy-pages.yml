@@ -9,7 +9,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -21,30 +20,23 @@ jobs:
         with:
           node-version: '18.16.0'
 
-      - name: Install pnpm
-        run: npm install -g pnpm
-
       - name: Install dependencies
-        run: pnpm install
+        run: npm install
 
       - name: Build
-        run: pnpm run docs:build
+        run: npm run docs:build
 
       - name: Deploy to Nginx Server
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
           REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
         run: |
-          # 设置 SSH
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts
-
-          # 部署文件使用 rsync
-          rsync -avz --delete -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" ./docs/.vuepress/dist/ $SSH_USERNAME@$SSH_HOST:$REMOTE_PATH
-
-          # 重启 Nginx
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST "sudo systemctl restart nginx"
+          ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
+          #scp -r ./docs/.vuepress/dist/* $SSH_USERNAME@$SSH_HOST:$REMOTE_PATH
+          sshpass -p $SSH_PASSWORD scp -r ./dev-ops/nginx/html/* root@$SSH_HOST:$REMOTE_PATH
