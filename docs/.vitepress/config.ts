@@ -4,30 +4,57 @@ import { metaData } from './config/constants';
 import { head } from './config/head';
 import { markdown } from './config/markdown';
 import { themeConfig } from './config/theme';
+import * as babel from '@babel/core'; // 使用 * as 来导入 babel
 
 export default withMermaid(
-  defineConfig({
-    base: '/',
-    outDir: 'dev-ops/nginx/html', // 设置输出目录
-    lang: metaData.lang,
-    title: metaData.title,
-    description: metaData.description,
+    defineConfig({
+      base: '/',
+      outDir: 'dev-ops/nginx/html', // 设置输出目录
+      lang: metaData.lang,
+      title: metaData.title,
+      description: metaData.description,
 
-    cleanUrls: true,
-    lastUpdated: true, // 显示最后更新时间
+      cleanUrls: true,
+      lastUpdated: true, // 显示最后更新时间
 
-    head, // <head>内标签配置
-    markdown: markdown, // Markdown配置
-    vue: {
-      template: {
-        compilerOptions: {
-          isCustomElement: (tag) => customElements.includes(tag),
+      head, // <head>内标签配置
+      markdown: markdown, // Markdown配置
+      vue: {
+        template: {
+          compilerOptions: {
+            isCustomElement: (tag) => customElements.includes(tag),
+          },
         },
       },
-    },
-    themeConfig, // 主题配置
-  }),
+      themeConfig, // 主题配置
+      vite: {
+        optimizeDeps: {
+          include: ['d3-interpolate']
+        },
+        build: {
+          rollupOptions: {
+            plugins: [
+              {
+                name: 'babel-transform',
+                transform(code: string, id: string) {
+                  const result = babel.transformSync(code, {
+                    filename: id,
+                    sourceMaps: true,
+                  });
+                  return {
+                    code: result?.code ?? '',
+                    map: result?.map ?? null,
+                  };
+                },
+              },
+            ],
+          },
+        },
+      },
+    }),
 );
+
+
 
 const customElements = [
   'mjx-container',
