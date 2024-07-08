@@ -32,22 +32,19 @@ jobs:
 
       - name: Deploy to Nginx Server
         env:
-          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
           REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
         run: |
-          # Setup SSH
+          # 设置 SSH
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts
 
-          # Deploy files using rsync for efficiency
-          rsync -avz --delete -e "ssh -i ~/.ssh/id_rsa" ./docs/.vuepress/dist/ $SSH_USERNAME@$SSH_HOST:$REMOTE_PATH
+          # 部署文件使用 rsync
+          rsync -avz --delete -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" ./docs/.vuepress/dist/ $SSH_USERNAME@$SSH_HOST:$REMOTE_PATH
 
-          # Restart Nginx
-          ssh -i ~/.ssh/id_rsa $SSH_USERNAME@$SSH_HOST "sudo systemctl restart nginx"
-
-        
+          # 重启 Nginx
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST "sudo systemctl restart nginx"
