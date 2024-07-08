@@ -26,5 +26,4 @@ cat "${KEY_PATH}.pub" >> "$HOME/.ssh/authorized_keys"
 # 设置正确的权限
 chmod 700 "$HOME/.ssh"
 chmod 600 "$HOME/.ssh/authorized_keys"
-chmod 600 /home/runner/.ssh/id_rsa
 echo "新的 SSH 密钥对已生成，并添加到 authorized_keys 文件中。"
